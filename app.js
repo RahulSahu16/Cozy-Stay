@@ -3,6 +3,7 @@ const express = require("express");
 
 const storeRouter = require("./routers/storeRouter");
 const { hostRouter } = require("./routers/hostRouter");
+const errorController = require("./controllers/errorController")
 
 const app = express();
 
@@ -19,9 +20,7 @@ app.use(storeRouter);
 app.use("/host", hostRouter);
 
 // 404 Page
-app.use((req, res, next) => {
-  res.status(404).render("store/error", { pageTitle: "Page Not Found" });
-});
+app.use(errorController.getError);
 
 app.listen(3000, () => {
   console.log(`Server running on http://localhost:3000`);
