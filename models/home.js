@@ -15,11 +15,13 @@ module.exports = class Home{
         this.imageURL = imageURL;
         this.description = description;
     }
-    save(callback){
-        
-        Home.fetchAll(registeredHomes => registeredHomes.push(this));
-        fs.writeFile(homeFilePath, JSON.stringify(registeredHomes), callback)
-    }
+    save(callback) {
+    Home.fetchAll(registeredHomes => {
+      registeredHomes.push(this);
+
+      fs.writeFile(homeFilePath, JSON.stringify(registeredHomes), callback);
+    });
+  }
     static fetchAll(callback){
         fs.readFile(homeFilePath, (error, data) => {
             let homes = [];
