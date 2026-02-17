@@ -1,6 +1,7 @@
-const { registeredHomes } = require("../models/home");
+const Home  = require("../models/home");
 
 exports.getHomePage = (req, res, next) => {
-  console.log(registeredHomes);
+  Home.fetchAll(registeredHomes => {;
   res.render("store/homepage", {registeredHomes: registeredHomes,pageTitle: "Welcome to Stay Cozy"});
-}
+})
+} 
