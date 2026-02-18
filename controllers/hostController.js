@@ -16,4 +16,8 @@ exports.postAddHome = (req, res, next) =>{
       else{
         res.render("host/homeAdded", {
     pageTitle: "Home Hosted Successfully",
-      })}})};
+      }
+    )
+  }
+}
+)};

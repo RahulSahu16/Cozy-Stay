@@ -1,0 +1,102 @@
+<%- include('../partials/head') %>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-600">Cozy Stay</h1>
+
+            <div class="space-x-4">
+                <a href="/" class="text-gray-700 hover:text-indigo-600 font-medium">Home</a>
+                <a href="/allHomes" class="text-gray-700 hover:text-indigo-600 font-medium">All Homes</a>
+                <a href="/host/addHome"
+                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    Add Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow py-10">
+
+        <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden">
+
+            <% if (home) { %>
+
+                <!-- Image -->
+                <img src="<%= home.imageURL %>" 
+                     alt="<%= home.houseName %>"
+                     class="w-full h-[400px] object-cover">
+
+                <!-- Content -->
+                <div class="p-8">
+
+                    <h2 class="text-3xl font-bold text-indigo-600 mb-2">
+                        <%= home.houseName %>
+                    </h2>
+
+                    <p class="text-gray-600 mb-2">
+                        📍 <%= home.city %>
+                    </p>
+
+                    <p class="text-yellow-500 mb-4">
+                        ⭐ <%= home.rating %>
+                    </p>
+
+                    <p class="text-2xl font-semibold text-gray-800 mb-6">
+                        ₹ <%= home.price %> 
+                        <span class="text-sm text-gray-500">/ night</span>
+                    </p>
+
+                    <!-- Description -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold mb-2">About this home</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            <%= home.description || "A comfortable and beautiful place to stay. Perfect for families, couples, or solo travelers. Enjoy a peaceful environment with all basic facilities." %>
+                        </p>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-4">
+
+                        <a href="/book/<%= home.id %>"
+                           class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
+                            Book Now
+                        </a>
+
+                        <button
+                            class="bg-pink-100 text-pink-600 px-6 py-3 rounded-lg hover:bg-pink-200">
+                            ❤ Add to Favourite
+                        </button>
+
+                        <a href="/allHomes"
+                           class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200">
+                            Back
+                        </a>
+
+                    </div>
+
+                </div>
+
+            <% } else { %>
+
+                <p class="text-center p-10 text-gray-500">
+                    Home not found
+                </p>
+
+            <% } %>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white text-center py-4 text-gray-500 shadow-inner">
+        © 2026 Cozy Stay
+    </footer>
+
+</body>
+</html>

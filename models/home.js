@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const rootDir = require('../util/path-util');
-const { error } = require('console');
 const homeFilePath = path.join(rootDir, 'data', 'homes.json');
 
 const registeredHomes = [];
@@ -16,6 +15,7 @@ module.exports = class Home{
         this.description = description;
     }
     save(callback) {
+    this.id = crypto.randomUUID();       
     Home.fetchAll(registeredHomes => {
       registeredHomes.push(this);
 
@@ -24,7 +24,6 @@ module.exports = class Home{
   }
     static fetchAll(callback){
         fs.readFile(homeFilePath, (error, data) => {
-            let homes = [];
             if(error){
                 callback([]);
             }else{
@@ -34,3 +33,10 @@ module.exports = class Home{
 
     }
 }
+
+
+// Flow 
+
+// Step 1: Purana data lao
+// Step 2: Naya home add karo
+// Step 3: File me save karo
