@@ -66,11 +66,14 @@
                            class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
                             Book Now
                         </a>
-
+                        
+                        <form action="/favourites" method="POST">
+                            <input type="hidden" name="homeId" value="<%= home.id %>">
                         <button
                             class="bg-pink-100 text-pink-600 px-6 py-3 rounded-lg hover:bg-pink-200">
                             ❤ Add to Favourite
                         </button>
+                        </form>
 
                         <a href="/allHomes"
                            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200">

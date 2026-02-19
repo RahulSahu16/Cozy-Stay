@@ -104,10 +104,13 @@
                         </a>
 
                         <!-- Add to Favourite -->
-                        <button 
-                            class="bg-pink-100 text-pink-600 py-2 rounded-lg font-medium hover:bg-pink-200 transition">
+                        <form action="/favourite" method="POST">
+                            <input type="hidden" name="homeId" value="<%= home.id %>">
+                        <button
+                            class="bg-pink-100 text-pink-600 px-6 py-3 rounded-lg hover:bg-pink-200">
                             ❤ Add to Favourite
                         </button>
+                        </form>
 
                     </div>
 

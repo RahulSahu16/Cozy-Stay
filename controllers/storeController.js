@@ -1,3 +1,4 @@
+const Favourite = require("../models/favourite");
 const Home  = require("../models/home");
 
 exports.getHomePage = (req, res, next) => {
@@ -15,16 +16,33 @@ exports.getAllHomes = (req, res, next) => {
 
 exports.getHomeDetails = (req, res, next) => {
   const homeId = req.params.homeId;
-  Home.fetchAll((homes) => {
-    const home = homes.find(home => home.id === homeId);
-    if (!home) {
-      return res.send("Home not found");
+  Home.findById(homeId, home => {
+    if(home){
+      res.render("store/homeDetails", {home: home, pageTitle: home.houseName});
+    }else{
+      res.status(404).render("store/homeDetails", {home: null, pageTitle: "Home Not Found"});
     }
-    res.render("store/homeDetails", {
-      pageTitle: "Home Details",
-      home: home
+   }
+)
+}
+
+exports.addToFavourites = (req, res, next) => {
+  console.log("Came to add to favourites", req.body);
+  Favourite.addToFavourite(req.body.homeId, error => { 
+    if(error){
+      console.log("Error adding to favourites", error);
+    } else{
+       res.redirect("/favourites");
+    } 
+  }   
+ )}
+
+ exports.getFavourites = (req, res, next) => {
+  Favourite.fetchAll(favouriteIds => {
+    Home.fetchAll((homes) => {
+      const favouriteHomes = homes.filter(home => favouriteIds.includes(home.id));
+      res.render("store/favourites", { favouriteHomes: favouriteHomes, pageTitle: "Your Favourites" });
     });
-  });
+  })
+
 };
-
-

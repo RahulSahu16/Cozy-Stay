@@ -14,23 +14,30 @@ module.exports = class Home{
         this.imageURL = imageURL;
         this.description = description;
     }
+    
     save(callback) {
-    this.id = crypto.randomUUID();       
-    Home.fetchAll(registeredHomes => {
-      registeredHomes.push(this);
-
-      fs.writeFile(homeFilePath, JSON.stringify(registeredHomes), callback);
-    });
-  }
+        this.id = Math.random().toString(); // Generate a unique ID for the home      
+        Home.fetchAll(registeredHomes => {
+        registeredHomes.push(this);
+        fs.writeFile(homeFilePath, JSON.stringify(registeredHomes), callback);
+        });
+    }
+    
     static fetchAll(callback){
         fs.readFile(homeFilePath, (error, data) => {
-            if(error){
-                callback([]);
-            }else{
+        if(error){
+            callback([]);
+        }else{
             callback(JSON.parse(data));
-            }
+        }
+       });
+    }
+   
+    static findById(homeId, callback) {
+            Home.fetchAll(homes => {
+            const home = homes.find(home => home.id.toString() === homeId);
+            callback(home);
         });
-
     }
 }
 
