@@ -48,14 +48,13 @@ module.exports = class Home{
     
     static deleteById(homeId, callback) {
         Home.fetchAll(homes => {
-            const homeIndex = homes.filter(home => home.id !== homeId);
+            const homeIndex = homes.filter(home => home.id.toString() !== homeId.toString());
              fs.writeFile(homeFilePath, JSON.stringify(homeIndex), error => {
                 if(error){
-                    callback(error);
-                    return;
+                    return callback(error);
                 }
                 Favourite.deleteById(homeId, callback);
             });
-    })
-  }
+        });
+    }
 }

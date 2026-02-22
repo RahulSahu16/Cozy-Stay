@@ -76,7 +76,11 @@ exports.postEditHome = (req, res, next) => {
 // DELETE HOME SECTION 
 
 exports.postDeleteHome = (req, res, next) => {
-  const homeId = req.body.homeId;
+  const homeId = req.params.homeId;
+  if (!homeId) {
+    console.log("Home ID is missing!");
+    return res.redirect("/host/hostHome");
+  }
   console.log("Received request to delete home with ID:", homeId);
   Home.deleteById(homeId, (error) => {
     if(error){
