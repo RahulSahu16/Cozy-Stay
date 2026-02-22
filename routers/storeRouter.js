@@ -6,6 +6,6 @@ storeRouter.get("/", storeController.getHomePage);
 storeRouter.get("/allhomes", storeController.getAllHomes);
 storeRouter.get("/allhomes/:homeId", storeController.getHomeDetails);
 storeRouter.get("/favourites", storeController.getFavourites); 
-storeRouter.post("/favourites", storeController.addToFavourites); 
-
+storeRouter.post("/favourites", storeController.postaddToFavourites); 
+storeRouter.post("/favourites/remove/:homeId", storeController.postRemoveFromFavourites);
 module.exports = storeRouter;

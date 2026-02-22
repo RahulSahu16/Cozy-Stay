@@ -17,20 +17,17 @@ module.exports = class Favourite {
         });
     }
 
-    // Add a home to favourites
-    static addToFavourite(homeId, callback) {
-        Favourite.fetchAll((favouriteIds) => {
-
-            // prevent duplicate
-            if (!favouriteIds.includes(homeId)) {
-                favouriteIds.push(homeId);
-            }
-
-            fs.writeFile(
-                favouriteFilePath,
-                JSON.stringify(favouriteIds),
-                callback
-            );
-        });
+    static addToFavourites(homeId, callback) {
+    Favourite.fetchAll(favouriteIds => {
+      favouriteIds.push(homeId);
+      fs.writeFile(favouriteFilePath, JSON.stringify(favouriteIds), callback);
+      });
     }
+
+    static deleteById(removeHomeId, callback) {
+    Favourite.fetchAll(homeIds => {
+      const newHomeIds = homeIds.filter(homeId => removeHomeId !== homeId);
+      fs.writeFile(favouriteFilePath, JSON.stringify(newHomeIds), callback);
+    })
+  }
 }

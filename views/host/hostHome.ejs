@@ -10,7 +10,7 @@
     <!-- Centered Heading -->
     <div class="text-center mb-8">
         <h2 class="text-3xl mt-8 font-bold text-gray-800 tracking-wide">
-            Here All The Registered Homes
+            Here All The Hosted Homes
         </h2>
 
         <!-- Decorative Line -->
@@ -18,7 +18,7 @@
 
         <!-- Subtitle (optional but looks premium) -->
         <p class="text-gray-500 mt-2 text-sm">
-            Explore the best stays available for you
+           
         </p>
     </div>
 
@@ -58,26 +58,12 @@
                     <!-- Buttons -->
                     <div class="flex flex-col gap-2">
 
-                        <!-- View Details -->
-                        <a href="/allhomes/<%= home.id %>" 
-                           class="text-center bg-indigo-100 text-indigo-600 py-2 rounded-lg font-medium hover:bg-indigo-200 transition">
-                            View Details
+                        <!-- Edit Details -->
+                        <a href="/host/editHome/<%= home.id %>?editing=true" 
+                           class="text-center bg-yellow-100 text-indigo-600 py-2 rounded-lg font-medium hover:bg-yellow-200 transition">
+                            Edit Details
                         </a>
-
-                        <!-- Book Now -->
-                        <a href="/book/<%= home.id %>" 
-                           class="text-center bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
-                            Book Now
-                        </a>
-
-                        <!-- Add to Favourite -->
-                        <form action="/favourites" method="POST">
-                            <input type="hidden" name="homeId" value="<%= home.id %>">
-                        <button
-                            class="bg-pink-100 text-pink-600 px-6 py-3 rounded-lg hover:bg-pink-200">
-                            ❤ Add to Favourite
-                        </button>
-                        </form>
+                        
 
                     </div>
 

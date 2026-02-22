@@ -4,6 +4,10 @@ const hostController = require("../controllers/hostController")
 
 hostRouter.get("/addHome", hostController.getAddHome);
 hostRouter.post("/addHome", hostController.postAddHome);
+hostRouter.get("/hostHome", hostController.getHostHome);
+hostRouter.get("/editHome/:homeId", hostController.getEditHome);
+hostRouter.post("/editHome", hostController.postEditHome);
+hostRouter.post("/deleteHome/:homeId", hostController.postDeleteHome);
 
 exports.hostRouter = hostRouter;
 

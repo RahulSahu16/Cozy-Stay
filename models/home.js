@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const rootDir = require('../util/path-util');
 const homeFilePath = path.join(rootDir, 'data', 'homes.json');
+const Favourite = require("./favourite");
+
 
 const registeredHomes = [];
 
@@ -16,11 +18,15 @@ module.exports = class Home{
     }
     
     save(callback) {
-        this.id = Math.random().toString(); // Generate a unique ID for the home      
         Home.fetchAll(registeredHomes => {
+      if (this.id) { // edit case
+        registeredHomes = registeredHomes.map(home => home.id !== this.id ? home : this);
+      } else { // new case
+        this.id = Math.random().toString();
         registeredHomes.push(this);
-        fs.writeFile(homeFilePath, JSON.stringify(registeredHomes), callback);
-        });
+      }
+      fs.writeFile(homeFilePath, JSON.stringify(registeredHomes), callback);
+    });
     }
     
     static fetchAll(callback){
@@ -39,11 +45,17 @@ module.exports = class Home{
             callback(home);
         });
     }
+    
+    static deleteById(homeId, callback) {
+        Home.fetchAll(homes => {
+            const homeIndex = homes.filter(home => home.id !== homeId);
+             fs.writeFile(homeFilePath, JSON.stringify(homeIndex), error => {
+                if(error){
+                    callback(error);
+                    return;
+                }
+                Favourite.deleteById(homeId, callback);
+            });
+    })
+  }
 }
-
-
-// Flow 
-
-// Step 1: Purana data lao
-// Step 2: Naya home add karo
-// Step 3: File me save karo
