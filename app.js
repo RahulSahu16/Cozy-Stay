@@ -5,6 +5,11 @@ const storeRouter = require("./routers/storeRouter");
 const { hostRouter } = require("./routers/hostRouter");
 const errorController = require("./controllers/errorController")
 
+const cozyStayDB = require("./util/database-util");
+cozyStayDB.execute("SELECT * FROM homes").then(([rows]) => {
+    console.log(rows);
+});
+
 const app = express();
 
 // View Engine
