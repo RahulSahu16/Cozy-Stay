@@ -1,5 +1,6 @@
 const path = require("path");
 const express = require("express");
+require("dotenv").config();
 
 
 const storeRouter = require("./routers/storeRouter");
@@ -25,7 +26,6 @@ app.use("/host", hostRouter);
 app.use(errorController.getError);
 
 const mongoose = require("mongoose");
-require("dotenv").config();
 
 mongoose.connect(process.env.MONGO_DB_URL)
   .then(() => {
