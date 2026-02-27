@@ -25,14 +25,13 @@ app.use("/host", hostRouter);
 app.use(errorController.getError);
 
 const mongoose = require("mongoose");
+require("dotenv").config();
 
-const mongo_db_url = "mongodb+srv://MERN_User:cozystay1234@merncluster.vlen7zm.mongodb.net/cozystay?retryWrites=true&w=majority&appName=MERNCluster";
-
-mongoose.connect(mongo_db_url)
-.then(() => {
+mongoose.connect(process.env.MONGO_DB_URL)
+  .then(() => {
     console.log("MongoDB Connected");
     app.listen(3000);
-})
-.catch(err => {
+  })
+  .catch(err => {
     console.log(err);
-});
+  });
