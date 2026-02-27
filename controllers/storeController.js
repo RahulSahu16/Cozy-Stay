@@ -2,13 +2,13 @@ const Favourite = require("../models/favourite");
 const Home  = require("../models/home");
 
 exports.getHomePage = (req, res, next) => {
-  Home.fetchAll().then (([registeredHomes]) => {
+  Home.find().then ((registeredHomes) => {
   res.render("store/homepage", {registeredHomes: registeredHomes,pageTitle: "Welcome to Stay Cozy"});
 })
 } 
 
 exports.getAllHomes = (req, res, next) => {
-  Home.fetchAll().then ((registeredHomes) => {
+  Home.find().then ((registeredHomes) => {
   res.render("store/allHomes", {registeredHomes: registeredHomes,pageTitle: "All Homes"});
 })
 }
@@ -39,8 +39,8 @@ exports.postaddToFavourites = (req, res, next) => {
 }
 
  exports.getFavourites = (req, res, next) => {
-  Favourite.fetchAll().then(favouriteIds => {
-    Home.fetchAll().then (registeredHomes => {
+  Favourite.find().then(favouriteIds => {
+    Home.find().then (registeredHomes => {
       favouriteIds = favouriteIds.map(favId => favId.homeId);
       const favouriteHomes = registeredHomes.filter(home => favouriteIds.includes(home._id.toString()));
       res.render("store/favourites", { favouriteHomes: favouriteHomes, pageTitle: "Your Favourites" });

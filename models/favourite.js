@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const rootDir = require('../util/path-util');
-const { getDb } = require("../util/database-util");
 
 
 
@@ -25,7 +24,7 @@ module.exports = class Favourite {
     });
   }
 
-  static fetchAll(callback) {
+  static find(callback) {
       const db = getDb();
       return db.collection("favourites").find().toArray()
     }

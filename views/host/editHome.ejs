@@ -15,7 +15,7 @@
                 <%= editing ? "Edit Your Home" : "Add Your Home" %>
             </h2>
             
-            <form action="/host/editHome" method="POST" class="space-y-5">
+            <form action="<%= editing ? '/host/editHome' : '/host/addHome' %>" method="POST" class="space-y-5">
 
                 <% if (editing) { %>
                     <input type="hidden" name="homeId" value="<%= home._id %>">
@@ -23,6 +23,11 @@
 
                 <!-- House Name -->
                 <div>
+
+                    <% if (editing) { %>
+                          <input type="hidden" name="homeId" value="<%= home._id %>">
+                    <% } %>
+
                     <label class="block font-medium mb-1">House Name</label>
                     <input 
                         type="text" 

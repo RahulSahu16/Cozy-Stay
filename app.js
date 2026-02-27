@@ -1,6 +1,6 @@
 const path = require("path");
 const express = require("express");
-const {mongoConnect} = require("./util/database-util");
+
 
 const storeRouter = require("./routers/storeRouter");
 const { hostRouter } = require("./routers/hostRouter");
@@ -24,9 +24,15 @@ app.use("/host", hostRouter);
 // 404 Page
 app.use(errorController.getError);
 
-mongoConnect(() => {
-  console.log("Connected to MongoDB");
-  app.listen(3000, () => {
-    console.log(`Server running on http://localhost:3000`);
-  });
+const mongoose = require("mongoose");
+
+const mongo_db_url = "mongodb+srv://MERN_User:cozystay1234@merncluster.vlen7zm.mongodb.net/cozystay?retryWrites=true&w=majority&appName=MERNCluster";
+
+mongoose.connect(mongo_db_url)
+.then(() => {
+    console.log("MongoDB Connected");
+    app.listen(3000);
+})
+.catch(err => {
+    console.log(err);
 });
