@@ -1,16 +1,13 @@
 const path = require("path");
 const express = require("express");
+const {mongoConnect} = require("./util/database-util");
 
 const storeRouter = require("./routers/storeRouter");
 const { hostRouter } = require("./routers/hostRouter");
 const errorController = require("./controllers/errorController")
 
-const cozyStayDB = require("./util/database-util");
-cozyStayDB.execute("SELECT * FROM homes").then(([rows]) => {
-    console.log(rows);
-});
-
 const app = express();
+
 
 // View Engine
 app.set("view engine", "ejs");
@@ -27,11 +24,9 @@ app.use("/host", hostRouter);
 // 404 Page
 app.use(errorController.getError);
 
-app.listen(3000, () => {
-  console.log(`Server running on http://localhost:3000`);
+mongoConnect(() => {
+  console.log("Connected to MongoDB");
+  app.listen(3000, () => {
+    console.log(`Server running on http://localhost:3000`);
+  });
 });
-
-
-
-
-

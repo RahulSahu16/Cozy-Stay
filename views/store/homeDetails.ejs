@@ -49,20 +49,20 @@
                     <!-- Buttons -->
                     <div class="flex gap-4">
 
-                        <a href="/book/<%= home.id %>"
+                        <a href="/book/<%= home._id %>"
                            class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
                             Book Now
                         </a>
                         
                         <form action="/favourites" method="POST">
-                            <input type="hidden" name="homeId" value="<%= home.id %>">
+                            <input type="hidden" name="homeId" value="<%= home._id %>">
                         <button
                             class="bg-pink-100 text-pink-600 px-6 py-3 rounded-lg hover:bg-pink-200">
                             ❤ Add to Favourite
                         </button>
                         </form>
 
-                        <a href="/allHomes"
+                        <a href="/allhomes"
                            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200">
                             Back
                         </a>

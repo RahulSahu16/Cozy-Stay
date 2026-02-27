@@ -13,22 +13,13 @@ exports.getAddHome = (req, res, next) => {
 exports.postAddHome = (req, res, next) =>{
     const{houseName, city, price, rating, imageURL, description} = req.body;
     const newHome = new Home(houseName, city, price, rating, imageURL, description);
-    newHome.save(error => {
-      if(error){
-        res.redirect("/");
-      }
-      else{
-        res.render("host/homeAdded", {
-        pageTitle: "Home Hosted Successfully",
-      }
-    )
-  }
+    newHome.save().then((rows) => {
+      res.render("host/homeAdded", {pageTitle: "Home Hosted Successfully"})})
 }
-)};
 
 
 exports.getHostHome = (req, res, next) => {
-  Home.fetchAll(registeredHomes => {
+  Home.fetchAll().then ((registeredHomes) => {
     res.render("host/hostHome", {registeredHomes: registeredHomes,pageTitle: "Your Hosted Homes"});
   })};
 
@@ -43,34 +34,39 @@ exports.getEditHome = (req, res, next) => {
     console.log("Editing mode not enabled");
     return res.redirect("/host/hostHome");
   }
-  Home.findById(homeId, (home) => {
-    if(!home){
-      console.log("Home not found for editing");
-      return res.redirect("/host/hostHome");
-    }
-
-    console.log("Editing home with ID:", homeId, "Editing mode:", editing, "Home details:", home);
-    res.render("host/editHome", {
-      pageTitle: "Edit Your Home",
-      editing: editing,
-      home: home
+  Home.findById(homeId)
+    .then(home => {
+      if(!home){
+        console.log("Home not found for editing");
+        return res.redirect("/host/hostHome");
+      }
+      res.render("host/editHome", {
+        pageTitle: "Edit Your Home",
+        editing: editing,
+        home: home
+      });
+    })
+    .catch(err => {
+      console.log("Error fetching home for edit:", err);
+      res.redirect("/host/hostHome");
     });
-  });
 };
 
 exports.postEditHome = (req, res, next) => {
   const {homeId, houseName, city, price, rating, imageURL, description} = req.body;
   const updatedHome = new Home(houseName, city, price, rating, imageURL, description);
-  updatedHome.id = homeId;
-  updatedHome.save((error) => {
-    if(error){
+  updatedHome._id = homeId;
+
+  updatedHome.save()
+    .then(() => {
+      console.log("Home updated successfully:", updatedHome);
+      res.redirect("/host/hostHome");
+    })
+    .catch(error => {
       console.log("Error updating home:", error);
-      return res.redirect("/host/hostHome");
-    }
-    console.log("Home updated successfully:", updatedHome);
-    res.redirect("/host/hostHome");
-  });
-}
+      res.redirect("/host/hostHome");
+    });
+};
 
 
 // DELETE HOME SECTION 
@@ -82,12 +78,8 @@ exports.postDeleteHome = (req, res, next) => {
     return res.redirect("/host/hostHome");
   }
   console.log("Received request to delete home with ID:", homeId);
-  Home.deleteById(homeId, (error) => {
-    if(error){
-      console.log("Error deleting home:", error);
-    } else {
-      console.log("Home deleted successfully with ID:", homeId);
-    }
+  Home.deleteById(homeId).then(() => {
+    console.log("Home deleted successfully with ID:", homeId);
+  })
     res.redirect("/host/hostHome");
-  });   
-}
+};   
