@@ -9,6 +9,6 @@ hostRouter.get("/editHome/:homeId", hostController.getEditHome);
 hostRouter.post("/editHome", hostController.postEditHome);
 hostRouter.post("/deleteHome/:homeId", hostController.postDeleteHome);
 
-exports.hostRouter = hostRouter;
+module.exports = hostRouter;
 
 

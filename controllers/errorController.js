@@ -1,3 +1,4 @@
 exports.getError = (req, res, next) => {
-  res.status(404).render("store/error", { pageTitle: "Page Not Found" });
+  res.statusCode = 404;
+  res.render("error", { pageTitle: "Page Not Found", isLoggedIn: req.isLoggedIn , user : req.session.user});
 }
