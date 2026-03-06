@@ -80,7 +80,7 @@ exports.getEditHome = (req, res, next) => {
       res.render("host/editHome", {
         pageTitle: "Edit Your Home",
         editing: editing,
-        registeredHomes: registeredHomes,
+        home: home,
         isLoggedIn: req.session.isLoggedIn,
         user: req.session.user,
       });
