@@ -1,86 +1,126 @@
-const { check, validationResult } = require('express-validator');
-const User = require('../models/user');
-const bcrypt = require('bcryptjs');
+const { check, validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
+const sendGrid = require("@sendgrid/mail");
 
-exports.getLogin = (req, res, next) => {
-  res.render("auth/login", { pageTitle: "Login", isLoggedIn: false });
-};
+const User = require("../models/user");
 
-exports.getSignup = (req, res, next) => {
-  res.render("auth/signup", {
-    pageTitle: "Signup",
-    isLoggedIn : false
+sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+
+
+/* ======================================
+   HELPER FUNCTIONS
+====================================== */
+
+const renderAuthPage = (res, view, pageTitle, errors = [], oldInput = {}, email = "") => {
+  return res.status(422).render(view, {
+    pageTitle,
+    isLoggedIn: false,
+    errorMessage: errors,
+    oldInput,
+    email
   });
 };
 
-exports.postLogin = async (req, res, next) => {
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
+
+
+/* ======================================
+   GET ROUTES
+====================================== */
+
+exports.getLogin = (req, res) => {
+  res.render("auth/login", {
+    pageTitle: "Login",
+    isLoggedIn: false
+  });
+};
+
+exports.getSignup = (req, res) => {
+  res.render("auth/signup", {
+    pageTitle: "Signup",
+    isLoggedIn: false
+  });
+};
+
+exports.getForgotPassword = (req, res) => {
+  res.render("auth/forgot", {
+    pageTitle: "Forgot Password",
+    isLoggedIn: false
+  });
+};
+
+exports.getResetPassword = (req, res) => {
+  const { email } = req.query;
+
+  res.render("auth/resetPassword", {
+    pageTitle: "Reset Password",
+    isLoggedIn: false,
+    email
+  });
+};
+
+
+/* ======================================
+   LOGIN
+====================================== */
+
+exports.postLogin = async (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
 
   try {
+
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw new Error("User Not Found");
+      return renderAuthPage(res, "auth/login", "Login", ["User not found"]);
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      throw new Error("Invalid Password");
+      return renderAuthPage(res, "auth/login", "Login", ["Invalid password"]);
     }
 
     req.session.isLoggedIn = true;
     req.session.user = user;
 
-    req.session.save((err) => {
-      if (err) {
-        console.log("Session save error:", err);
-      }
-      return res.redirect("/");
+    req.session.save(err => {
+      if (err) console.log("Session Error:", err);
+      res.redirect("/");
     });
 
   } catch (err) {
-    res.render("auth/login", {
-      pageTitle: "Login",
-      isLoggedIn: false,
-      errorMessage: [err.message]
-    });
+    renderAuthPage(res, "auth/login", "Login", [err.message]);
   }
 };
 
-exports.postSignup = [
+
+/* ======================================
+   SIGNUP VALIDATION
+====================================== */
+
+exports.signupValidation = [
+
   check("name")
-    .notEmpty()
-    .withMessage("Name is required")
+    .notEmpty().withMessage("Name is required")
     .trim()
-    .isLength({ min: 3 })
-    .withMessage("Name must be at least 3 characters long")
-    .matches(/^[a-zA-Z\s]+$/)
-    .withMessage("Name can only contain letters and spaces"),
+    .isLength({ min: 3 }).withMessage("Name must be at least 3 characters")
+    .matches(/^[a-zA-Z\s]+$/).withMessage("Only letters allowed"),
 
   check("email")
-    .notEmpty()
-    .withMessage("Email is required")
-    .isEmail()
-    .withMessage("Please enter a valid email")
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Enter valid email")
     .normalizeEmail(),
 
   check("password")
-    .notEmpty()
-    .withMessage("Password is required")
-    .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
-    .trim()
-    .matches(/[A-Z]/)
-    .withMessage("Password must contain at least one uppercase letter")
-    .matches(/[a-z]/)
-    .withMessage("Password must contain at least one lowercase letter"),
+    .notEmpty().withMessage("Password required")
+    .isLength({ min: 8 }).withMessage("Minimum 8 characters")
+    .matches(/[A-Z]/).withMessage("Must contain uppercase")
+    .matches(/[a-z]/).withMessage("Must contain lowercase"),
 
   check("confirmPassword")
-    .notEmpty()
-    .withMessage("Please confirm your password")
-    .trim()
     .custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Passwords do not match");
@@ -89,56 +129,172 @@ exports.postSignup = [
     }),
 
   check("role")
-    .notEmpty()
-    .withMessage("Role is required")
     .isIn(["user", "host"])
-    .withMessage("Role must be either 'user' or 'host'"),
+    .withMessage("Role must be user or host"),
 
   check("terms")
     .notEmpty()
-    .withMessage("You must agree to the terms and conditions"),
+    .withMessage("You must accept terms")
+];
 
-  (req, res, next) => {
-    console.log("Signup data:", req.body);
 
-    const errors = validationResult(req);
+/* ======================================
+   SIGNUP
+====================================== */
 
-    if (!errors.isEmpty()) {
-      return res.status(422).render("auth/signup", {
-        pageTitle: "Signup",
-        isLoggedIn: false,
-        errorMessage: errors.array().map(err => err.msg),
-        oldInput: req.body
-      });
+exports.postSignup = async (req, res) => {
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return renderAuthPage(
+      res,
+      "auth/signup",
+      "Signup",
+      errors.array().map(err => err.msg),
+      req.body
+    );
+  }
+
+  const { name, email, password, role } = req.body;
+
+  try {
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role
+    });
+
+    await user.save();
+
+    res.redirect("/login");
+
+  } catch (err) {
+    renderAuthPage(res, "auth/signup", "Signup", [err.message], req.body);
+  }
+};
+
+
+/* ======================================
+   LOGOUT
+====================================== */
+
+exports.postLogout = (req, res) => {
+  req.session.destroy(() => {
+    res.redirect("/login");
+  });
+};
+
+
+/* ======================================
+   FORGOT PASSWORD
+====================================== */
+
+exports.postForgotPassword = async (req, res) => {
+
+  const { email } = req.body;
+
+  try {
+
+    const generateOTP = () => {
+      return Math.floor(100000 + Math.random() * 900000);
+    };
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return renderAuthPage(res, "auth/forgot", "Forgot Password", [
+        "No account found with this email"
+      ]);
     }
 
-    const { name, email, password, role } = req.body;
+    const otp = generateOTP();
 
-    bcrypt.hash(password, 12)
-      .then(hashedPassword => {
-        const user = new User({
-          name,
-          email,
-          password: hashedPassword,
-          role
-        });
+    user.resetOtp = otp;
+    user.resetOtpExpiration = Date.now() + 5 * 60 * 1000;
 
-       user.save().then(result => {
-        console.log(result);
-        res.redirect("/login");
-      }).catch(error => {
-        return res.status(422).render('auth/signup', 
-          {
-            pageTitle: 'Login', 
-            isLoggedIn: false,
-            errorMessages: [error],
-            oldInput: req.body,
-          })
-      });
-    })
+    await user.save();
+
+    const message = {
+      to: email,
+      from: "rahulssahu1116@gmail.com",
+      subject: "Cozy Stay Password Reset OTP",
+      text: `Your OTP is ${otp}`,
+      html: `<h2>Your OTP: ${otp}</h2><p>Expires in 5 minutes</p>`
+    };
+
+    await sendGrid.send(message);
+
+    console.log("OTP sent:", otp);
+
+    res.redirect(`/reset-password?email=${email}`);
+
+  } catch (err) {
+    renderAuthPage(res, "auth/forgot", "Forgot Password", [err.message]);
   }
-];
-exports.postLogout = (req, res, next) => {
-  req.session.destroy();
-  res.redirect("/login");
+};
+
+
+/* ======================================
+   RESET PASSWORD
+====================================== */
+
+exports.postResetPassword = async (req, res) => {
+
+  const { email, otp, password, confirmPassword } = req.body;
+
+  try {
+
+    if (!email || !otp || !password || !confirmPassword) {
+      return renderAuthPage(res, "auth/resetPassword", "Reset Password",
+        ["All fields are required"], {}, email);
+    }
+
+    if (password !== confirmPassword) {
+      return renderAuthPage(res, "auth/resetPassword", "Reset Password",
+        ["Passwords do not match"], {}, email);
+    }
+
+    if (password.length < 8) {
+      return renderAuthPage(res, "auth/resetPassword", "Reset Password",
+        ["Password must be at least 8 characters"], {}, email);
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return renderAuthPage(res, "auth/resetPassword", "Reset Password",
+        ["User not found"], {}, email);
+    }
+
+    if (!user.resetOtp || user.resetOtp.toString() !== otp.toString()) {
+      return renderAuthPage(res, "auth/resetPassword", "Reset Password",
+        ["Invalid OTP"], {}, email);
+    }
+
+    if (Date.now() > user.resetOtpExpiration) {
+      return renderAuthPage(res, "auth/resetPassword", "Reset Password",
+        ["OTP expired"], {}, email);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    user.password = hashedPassword;
+    user.resetOtp = undefined;
+    user.resetOtpExpiration = undefined;
+
+    await user.save();
+
+    res.redirect("/login?message=Password reset successful");
+
+  } catch (err) {
+
+    renderAuthPage(res, "auth/resetPassword", "Reset Password",
+      [err.message], {}, email);
+
+  }
 };

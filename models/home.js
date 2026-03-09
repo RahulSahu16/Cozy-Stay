@@ -1,4 +1,4 @@
-const Favourite = require("./favourite");
+
 const mongoose = require("mongoose");
 
 const homeSchema = new mongoose.Schema({
@@ -14,11 +14,6 @@ const homeSchema = new mongoose.Schema({
     ref: "user",
     required: true
   }
-});
-
-homeSchema.pre('findOneAndDelete', async function() {
-  const homeId = this.getFilter()["_id"];
-  await Favourite.deleteMany({ homeId: homeId });
 });
 
 module.exports = mongoose.model("Home", homeSchema);

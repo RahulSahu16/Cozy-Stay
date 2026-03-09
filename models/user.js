@@ -22,6 +22,19 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'host'],
     default: 'user',
   },
+  favouriteHomes : [{
+    type: mongoose.Schema.Types.ObjectId,
+        ref: 'Home',
+  }],
+  resetOtp: {
+    type: Number,
+    default: null,
+  },
+  resetOtpExpiration: {
+    type: Date,
+    default: null,
+  }
 }, { timestamps: true });
 
-module.exports = mongoose.model('user', userSchema);
+
+module.exports = mongoose.model('User', userSchema);
