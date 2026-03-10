@@ -17,7 +17,35 @@ exports.getAddHome = (req, res, next) => {
 
 // POST: Add New Home
 exports.postAddHome = (req, res, next) => {
-  const { houseName, city, price, rating, imageURL, description } = req.body;
+
+  if (!req.body) {
+    console.error("req.body is undefined");
+    return res.status(400).render("store/error", {
+      pageTitle: "Invalid Request",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user
+    });
+  }
+
+  console.log("BODY:", req.body);
+  console.log("FILE:", req.file);
+
+  const houseName = req.body.houseName;
+  const city = req.body.city;
+  const price = req.body.price;
+  const rating = req.body.rating;
+  const description = req.body.description;
+
+  const imageURL = req.file ? req.file.filename : null;
+
+  if (!imageURL) {
+    console.error("No image uploaded");
+    return res.status(400).render("store/error", {
+      pageTitle: "Image Required",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user
+    });
+  }
 
   const newHome = new Home({
     houseName,
@@ -26,15 +54,23 @@ exports.postAddHome = (req, res, next) => {
     rating,
     imageURL,
     description,
-    host: req.session.user._id,
+    host: req.session.user._id
   });
 
   newHome.save()
     .then(() => {
       res.redirect("/host/hostHome");
     })
-};
+    .catch(err => {
+      console.error("Error saving home:", err);
+      res.status(500).render("store/error", {
+        pageTitle: "Error Adding Home",
+        isLoggedIn: req.session.isLoggedIn,
+        user: req.session.user
+      });
+    });
 
+};
 
 
 // =====================================
@@ -90,9 +126,24 @@ exports.getEditHome = (req, res, next) => {
 
 // POST: Update Home
 exports.postEditHome = (req, res, next) => {
-  const { homeId, houseName, city, price, rating, imageURL, description } = req.body;
+  if (!req.body) {
+    console.error("req.body is undefined in postEditHome");
+    return res.status(400).render("store/error", {
+      pageTitle: "Invalid Request",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user
+    });
+  }
 
-  console.log(req.body);
+  const homeId = req.body.homeId;
+  const houseName = req.body.houseName;
+  const city = req.body.city;
+  const price = req.body.price;
+  const rating = req.body.rating;
+  const description = req.body.description;
+
+  console.log("EDIT BODY:", req.body);
+  console.log("EDIT FILE:", req.file);
 
   Home.findById(homeId)
     .then((existinghome) => {
@@ -105,8 +156,12 @@ exports.postEditHome = (req, res, next) => {
       existinghome.city = city;
       existinghome.price = price;
       existinghome.rating = rating;
-      existinghome.imageURL = imageURL;
       existinghome.description = description;
+
+      // If a new image was uploaded, update the imageURL; otherwise keep the existing one
+      if (req.file) {
+        existinghome.imageURL = req.file.filename;
+      }
 
       return existinghome.save();
     })

@@ -6,6 +6,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const multer = require("multer");
 const MongoDBStore = require("connect-mongodb-session")(session);
 
 // ================= LOCAL MODULES =================
@@ -22,10 +23,35 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // ================= BODY PARSER =================
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
 // ================= STATIC FILES =================
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// ================= MULTER CONFIG =================
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads"); // folder where images will be stored
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+// Accept only images
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 
 // ================= SESSION STORE =================
 const store = new MongoDBStore({
@@ -52,7 +78,6 @@ app.use(
 );
 
 // ================= GLOBAL VARIABLES =================
-// Make session data available in all EJS files
 app.use((req, res, next) => {
   res.locals.isLoggedIn = req.session.isLoggedIn;
   res.locals.user = req.session.user;
@@ -60,11 +85,7 @@ app.use((req, res, next) => {
 });
 
 // ================= ROUTES =================
-
-// Store routes (home, all homes)
 app.use(storeRouter);
-
-// Auth routes (login, signup, logout)
 app.use(authRouter);
 
 // Protect host routes
@@ -75,7 +96,6 @@ app.use("/host", (req, res, next) => {
   next();
 });
 
-// Host routes
 app.use("/host", hostRouter);
 
 // ================= 404 =================

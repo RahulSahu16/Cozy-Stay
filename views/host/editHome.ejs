@@ -15,7 +15,7 @@
                 <%= editing ? "Edit Your Home" : "Add Your Home" %>
             </h2>
             
-            <form action="<%= editing ? '/host/editHome' : '/host/addHome' %>" method="POST" class="space-y-5">
+            <form action="<%= editing ? '/host/editHome' : '/host/addHome' %>" method="POST" enctype="multipart/form-data" class="space-y-5">
 
                 <% if (editing) { %>
                     <input type="hidden" name="homeId" value="<%= home._id %>">
@@ -23,10 +23,6 @@
 
                 <!-- House Name -->
                 <div>
-
-                    <% if (editing) { %>
-                          <input type="hidden" name="homeId" value="<%= home._id %>">
-                    <% } %>
 
                     <label class="block font-medium mb-1">House Name</label>
                     <input 
@@ -85,12 +81,10 @@
                 <div>
                     <label class="block font-medium mb-1">Image URL</label>
                     <input 
-                        type="text" 
-                        name="imageURL"
-                        placeholder="Enter the URL of the images of your house"
+                        type="file" 
+                        name="image"
                         class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        value="<%= editing ? home.imageURL : '' %>"
-                        required
+                        <%= editing ? '' : 'required' %>
                     >
                 </div>
 
