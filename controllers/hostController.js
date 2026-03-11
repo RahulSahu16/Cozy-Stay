@@ -2,6 +2,9 @@ const Home = require("../models/home");
 const { deleteFile } = require("../util/file");
 const path = require("path");
 
+// Image folder path
+const IMAGE_FOLDER = path.join(__dirname, "..", "uploads");
+
 // =====================================
 // ADD HOME SECTION
 // =====================================
@@ -12,7 +15,7 @@ exports.getAddHome = (req, res, next) => {
     editing: false,
     pageTitle: "Add Your Home",
     isLoggedIn: req.session.isLoggedIn,
-    user: req.session.user,
+    user: req.session.user
   });
 };
 
@@ -21,7 +24,7 @@ exports.getAddHome = (req, res, next) => {
 exports.postAddHome = (req, res, next) => {
 
   if (!req.body) {
-    console.error("req.body is undefined");
+    console.error("Request body is undefined");
     return res.status(400).render("store/error", {
       pageTitle: "Invalid Request",
       isLoggedIn: req.session.isLoggedIn,
@@ -29,19 +32,14 @@ exports.postAddHome = (req, res, next) => {
     });
   }
 
+  const { houseName, city, price, rating, description } = req.body;
+
   console.log("BODY:", req.body);
   console.log("FILE:", req.file);
-
-  const houseName = req.body.houseName;
-  const city = req.body.city;
-  const price = req.body.price;
-  const rating = req.body.rating;
-  const description = req.body.description;
 
   const imageURL = req.file ? req.file.filename : null;
 
   if (!imageURL) {
-    console.error("No image uploaded");
     return res.status(400).render("store/error", {
       pageTitle: "Image Required",
       isLoggedIn: req.session.isLoggedIn,
@@ -54,15 +52,13 @@ exports.postAddHome = (req, res, next) => {
     city,
     price,
     rating,
-    imageURL,
     description,
+    imageURL,
     host: req.session.user._id
   });
 
   newHome.save()
-    .then(() => {
-      res.redirect("/host/hostHome");
-    })
+    .then(() => res.redirect("/host/hostHome"))
     .catch(err => {
       console.error("Error saving home:", err);
       res.status(500).render("store/error", {
@@ -71,7 +67,6 @@ exports.postAddHome = (req, res, next) => {
         user: req.session.user
       });
     });
-
 };
 
 
@@ -81,17 +76,24 @@ exports.postAddHome = (req, res, next) => {
 
 // GET: All Homes Hosted by User
 exports.getHostHome = (req, res, next) => {
-  Home.find({host: req.session.user._id}).then((registeredHomes) => {
-    console.log(registeredHomes);
-    res.render("host/hostHome", {
-      registeredHomes: registeredHomes,
-      pageTitle: "Your Hosted Homes",
-      isLoggedIn: req.session.isLoggedIn,
-      user: req.session.user,
-    });
-  });
-};
 
+  Home.find({ host: req.session.user._id })
+    .then((registeredHomes) => {
+
+      res.render("host/hostHome", {
+        registeredHomes,
+        pageTitle: "Your Hosted Homes",
+        isLoggedIn: req.session.isLoggedIn,
+        user: req.session.user
+      });
+
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect("/");
+    });
+
+};
 
 
 // =====================================
@@ -100,36 +102,43 @@ exports.getHostHome = (req, res, next) => {
 
 // GET: Edit Home Page
 exports.getEditHome = (req, res, next) => {
+
   const homeId = req.params.homeId;
   const editing = req.query.editing === "true";
 
   if (!editing) {
-    console.log("Editing mode not enabled");
     return res.redirect("/host/hostHome");
   }
 
   Home.findById(homeId)
-    .then((home) => {
+    .then(home => {
+
       if (!home) {
-        console.log("Home not found for editing");
         return res.redirect("/host/hostHome");
       }
 
       res.render("host/editHome", {
         pageTitle: "Edit Your Home",
-        editing: editing,
-        home: home,
+        editing,
+        home,
         isLoggedIn: req.session.isLoggedIn,
-        user: req.session.user,
+        user: req.session.user
       });
+
     })
+    .catch(err => {
+      console.log(err);
+      res.redirect("/host/hostHome");
+    });
+
 };
 
 
 // POST: Update Home
 exports.postEditHome = (req, res, next) => {
+
   if (!req.body) {
-    console.error("req.body is undefined in postEditHome");
+    console.error("req.body undefined in postEditHome");
     return res.status(400).render("store/error", {
       pageTitle: "Invalid Request",
       isLoggedIn: req.session.isLoggedIn,
@@ -137,47 +146,47 @@ exports.postEditHome = (req, res, next) => {
     });
   }
 
-  const homeId = req.body.homeId;
-  const houseName = req.body.houseName;
-  const city = req.body.city;
-  const price = req.body.price;
-  const rating = req.body.rating;
-  const description = req.body.description;
+  const { homeId, houseName, city, price, rating, description } = req.body;
 
   console.log("EDIT BODY:", req.body);
   console.log("EDIT FILE:", req.file);
 
   Home.findById(homeId)
-    .then((existinghome) => {
-      if (!existinghome) {
-        console.log("Home not found for updating");
+    .then(existingHome => {
+
+      if (!existingHome) {
         return res.redirect("/host/hostHome");
       }
 
-      existinghome.houseName = houseName;
-      existinghome.city = city;
-      existinghome.price = price;
-      existinghome.rating = rating;
-      existinghome.description = description;
+      existingHome.houseName = houseName;
+      existingHome.city = city;
+      existingHome.price = price;
+      existingHome.rating = rating;
+      existingHome.description = description;
 
-      // If a new image was uploaded, update the imageURL; otherwise keep the existing one
+      // If new image uploaded
       if (req.file) {
-        const oldImagePath = path.join(rootDir, existinghome.imageURL);
-        fileHelper.deleteFile(oldImagePath);
 
-        existinghome.imageURL = "/uploads/" + req.file.filename;
+        if (existingHome.imageURL) {
+
+          const oldImagePath = path.join(
+            IMAGE_FOLDER,
+            existingHome.imageURL
+          );
+
+          deleteFile(oldImagePath);
+        }
+
+        existingHome.imageURL = req.file.filename;
       }
 
-      return existinghome.save();
-    })
-    .then(() => {
-      res.redirect("/host/hostHome");
-    })
-    .catch(err => {
-      console.log(err);
-    });
-};
+      return existingHome.save();
 
+    })
+    .then(() => res.redirect("/host/hostHome"))
+    .catch(err => console.log(err));
+
+};
 
 
 // =====================================
@@ -186,13 +195,38 @@ exports.postEditHome = (req, res, next) => {
 
 // POST: Delete Home
 exports.postDeleteHome = (req, res, next) => {
+
   const homeId = req.params.homeId;
 
-  console.log("Received request to delete home with ID:", homeId);
+  console.log("Deleting home:", homeId);
 
-  Home.findByIdAndDelete(homeId)
+  Home.findById(homeId)
+    .then(home => {
+
+      if (!home) {
+        return res.redirect("/host/hostHome");
+      }
+
+      if (home.imageURL) {
+
+        const imagePath = path.join(
+          IMAGE_FOLDER,
+          home.imageURL
+        );
+
+        deleteFile(imagePath);
+      }
+
+      return Home.findByIdAndDelete(homeId);
+
+    })
     .then(() => {
-      console.log("Home deleted successfully with ID:", homeId);
+      console.log("Home deleted:", homeId);
       res.redirect("/host/hostHome");
     })
+    .catch(err => {
+      console.log(err);
+      res.redirect("/host/hostHome");
+    });
+
 };
