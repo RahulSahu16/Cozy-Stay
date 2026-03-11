@@ -1,4 +1,6 @@
 const Home = require("../models/home");
+const { deleteFile } = require("../util/file");
+const path = require("path");
 
 // =====================================
 // ADD HOME SECTION
@@ -160,14 +162,20 @@ exports.postEditHome = (req, res, next) => {
 
       // If a new image was uploaded, update the imageURL; otherwise keep the existing one
       if (req.file) {
-        existinghome.imageURL = req.file.filename;
+        const oldImagePath = path.join(rootDir, existinghome.imageURL);
+        fileHelper.deleteFile(oldImagePath);
+
+        existinghome.imageURL = "/uploads/" + req.file.filename;
       }
 
       return existinghome.save();
     })
-    .finally(() => {
-      return res.redirect("/host/hostHome")
+    .then(() => {
+      res.redirect("/host/hostHome");
     })
+    .catch(err => {
+      console.log(err);
+    });
 };
 
 

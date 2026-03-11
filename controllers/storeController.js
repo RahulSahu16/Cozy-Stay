@@ -5,6 +5,8 @@
 const User = require("../models/user");
 const Home = require("../models/home");
 const mongoose = require("mongoose");
+const path = require("path");
+const rootDir = require("../util/path-util");
 
 
 // =====================================
@@ -139,3 +141,16 @@ exports.postRemoveFromFavourites = async (req, res) => {
     res.redirect("/favourites");
   }
 };
+
+// GET: House Rules
+
+  exports.getHouseRules = (req, res, next) => {
+    const filePath = path.join(__dirname, "..", "rules", "CozyStayRules.pdf");
+  
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.log("Error sending rules PDF:", err);
+        next(err);
+      }
+    });
+  };
